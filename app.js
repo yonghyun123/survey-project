@@ -33,7 +33,10 @@ app.use('/bower_components',  express.static(path.join(__dirname, '/bower_compon
 
 // -----------------여기서 에러나
 
-
+app.use(function(req, res, next) {
+  res.locals.Messages = req.flash();
+  next();
+});
 
 app.use('/', routes);
 app.use('/users', users);
@@ -45,12 +48,7 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
-/*
-app.use(function(req, res, next) {
-  res.locals.messages = req.flash();
-  next();
-});
-*/
+
 // error handlers
 
 // development error handler

@@ -7,11 +7,15 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var methodOverride = require('method-override');
 var flash = require('connect-flash');
+var mongoose = require('mongoose');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
+//몽고디비 연결
+mongoose.connect('mongodb://yonghyun:yong153426@ds045664.mongolab.com:45664/yonghyun');
+mongoose.connection.on('error', console.log);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -24,8 +28,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(methodOverride('_method'));
+app.use(methodOverride('_method', {methods: ['POST', 'GET']}));
 app.use('/bower_components',  express.static(path.join(__dirname, '/bower_components')));
+
+// -----------------여기서 에러나
+
+
 
 app.use('/', routes);
 app.use('/users', users);
@@ -37,7 +45,12 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
-
+/*
+app.use(function(req, res, next) {
+  res.locals.messages = req.flash();
+  next();
+});
+*/
 // error handlers
 
 // development error handler

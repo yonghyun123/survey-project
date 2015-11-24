@@ -3,6 +3,7 @@ extends ../layout
 block content
   .container
     h1.page-header 회원가입
+    p 회원가입하시면 더 많은 서비스를 이용하실 수 있습니다.
     form(action='/users', method='POST')
       .form-group
         label.label.label-info(for='name') Name
@@ -13,9 +14,12 @@ block content
       .form-group
         label.label.label-info(for='password') Password
         input.form-control(type='password', id='password', name='password', placeholder='Password')
-      .form-group
+      .form-group 
         label.label.label-info(for='password_confirmation') Password 확인
         input.form-control(type='password', id='password_confirmation', name='password_confirmation', placeholder='Password')
+      .form-group
+       label.label.label-info(for='introduce') Show yours
+       textarea.form-control(type="text",id='introduce', placeholder="introduce yourself" rows="10")
       div.form-actions
         a.btn.btn-default(href='javascript:window.history.back();') 뒤로 
         | 

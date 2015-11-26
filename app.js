@@ -29,12 +29,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method', {methods: ['POST', 'GET']}));
+//플래시를 하게 해주는거 같은데
+app.use(session({
+  resave: true,
+  saveUninitialized: true,
+  secret: 'long-long-long-secret-string-1313513tefgwdsvbjkvasd'
+}));
+
 app.use('/bower_components',  express.static(path.join(__dirname, '/bower_components')));
 
 // -----------------여기서 에러나
-
+app.use(flash());
 app.use(function(req, res, next) {
-  res.locals.Messages = req.flash();
+  res.locals.messages = req.flash();
   next();
 });
 

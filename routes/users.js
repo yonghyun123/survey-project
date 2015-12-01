@@ -2,6 +2,15 @@ var express = require('express'),
     User = require('../models/User');
 var router = express.Router();
 
+function needAuth(req, res, next) {
+    if (req.session.user) {
+      next();
+    } else {
+      req.flash('danger', '로그인이 필요합니다.');
+      res.redirect('/signin');
+    }
+}
+
 function validateForm(form, options) {
   var name = form.name || "";
   var email = form.email || "";
@@ -16,7 +25,7 @@ function validateForm(form, options) {
     return '이메일을 입력해주세요.';
   }
 
-  if (!form.password) {
+  if (!form.password && options.needPassword) {
     return '비밀번호를 입력해주세요.';
   }
 
@@ -27,41 +36,110 @@ function validateForm(form, options) {
   if (form.password.length < 6) {
     return '비밀번호는 6글자 이상이어야 합니다.';
   }
-  if(!form.introduce){
-    return '자기소개는 필수 항목입니다.';
-  }
 
   return null;
 }
 
-
-
 /* GET users listing. */
+router.get('/', needAuth, function(req, res, next) {
+  User.find({}, function(err, users) {
+    if (err) {
+      return next(err);
+    }
+    res.render('users/index', {users: users});
+  });
+});
+
 router.get('/new', function(req, res, next) {
-  res.render('users/new');
+  res.render('users/new', {messages: req.flash()});
+});
+
+router.get('/:id/edit', function(req, res, next) {
+  User.findById(req.params.id, function(err, user) {
+    if (err) {
+      return next(err);
+    }
+    res.render('users/edit', {user: user});
+  });
+});
+
+router.put('/:id', function(req, res, next) {
+  var err = validateForm(req.body);
+  if (err) {
+    req.flash('danger', err);
+    return res.redirect('back');
+  }
+
+  User.findById({_id: req.params.id}, function(err, user) {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      req.flash('danger', '존재하지 않는 사용자입니다.');
+      return res.redirect('back');
+    }
+
+    if (user.password !== req.body.current_password) {
+      req.flash('danger', '현재 비밀번호가 일치하지 않습니다.');
+      return res.redirect('back');
+    }
+
+    user.name = req.body.name;
+    user.email = req.body.email;
+    if (req.body.password) {
+      user.password = req.body.password;
+    }
+
+    user.save(function(err) {
+      if (err) {
+        return next(err);
+      }
+      req.flash('success', '사용자 정보가 변경되었습니다.');
+      res.redirect('/users');
+    });
+  });
+});
+
+router.delete('/:id', function(req, res, next) {
+  User.findOneAndRemove({_id: req.params.id}, function(err) {
+    if (err) {
+      return next(err);
+    }
+    req.flash('success', '사용자 계정이 삭제되었습니다.');
+    res.redirect('/users');
+  });
+});
+
+router.get('/:id', function(req, res, next) {
+  User.findById(req.params.id, function(err, user) {
+    if (err) {
+      return next(err);
+    }
+    res.render('users/show', {user: user});
+  });
 });
 
 router.post('/', function(req, res, next) {
   var err = validateForm(req.body, {needPassword: true});
-  if(err){
-    req.flash('danger',err);
+  if (err) {
+    req.flash('danger', err);
     return res.redirect('back');
   }
-  User.findOne({email: req.body.email}, function(err, user) { //이미 db에 들어있는 이메일이 있으면 에러처리
+  User.findOne({email: req.body.email}, function(err, user) {
     if (err) {
       return next(err);
     }
     if (user) {
-    req.flash('danger', '동일한 이메일 주소가 이미 존재합니다.');
-    res.redirect('back');
+      req.flash('danger', '동일한 이메일 주소가 이미 존재합니다.');
+      res.redirect('back');
     }
-    var newUser = new User({            //newPost에 Post객체 대엡하고 data들을 각각 입력한다.
-      name:req.body.name,
+    var newUser = new User({
+      name: req.body.name,
       email: req.body.email,
-      password: req.body.password,
     });
+    newUser.password = req.body.password;
 
-    newUser.save(function(err) {         //입력된 내용들을 저장하고 redirect posts시킨다.
+    newUser.save(function(err) {
       if (err) {
         return next(err);
       } else {
@@ -71,6 +149,7 @@ router.post('/', function(req, res, next) {
     });
   });
 });
+
 
 
 module.exports = router;

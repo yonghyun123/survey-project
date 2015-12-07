@@ -47,12 +47,13 @@ app.use('/bower_components',  express.static(path.join(__dirname, '/bower_compon
 
 app.use(function(req, res, next) {
   res.locals.currentUser = req.session.user;
-  res.locals.flashMessages = req.flash();
+  res.locals.messages = req.flash();
   next();
 });
 
 app.use('/', routes);
 app.use('/users', users);
+//app.use('/serveys',surveys)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

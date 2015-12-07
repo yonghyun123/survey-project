@@ -29,4 +29,10 @@ router.post('/signin', function(req, res, next) {
   });
 });
 
+router.get('/signout', function(req, res, next) {
+  delete req.session.user;
+  req.flash('success', '로그아웃 되었습니다.');
+  res.redirect('/');
+});
+
 module.exports = router;
